@@ -1,0 +1,39 @@
+parameters:
+  - name: env
+    type: string
+    values:
+      - dev
+      - prd
+  - name: rgName
+    type: string
+  - name: artifactName
+    type: string
+
+
+stages:
+  - stage: Preview
+    variables:
+      env: ${{ parameters.env }}
+    jobs:
+      - job: BuildBicepparamsToJson
+        displayName: Build Bicepparams to Json
+        workspace:
+          clean: all
+        steps:
+          - download: current
+            name: DownloadParams
+            artifact: ${{ parameters.artifactName }}
+            patterns: |
+              **/main.${{ parameters.env }}.json
+          - task: AzureCLI@2
+            name: Preview
+            displayName: Preview
+            inputs:
+              azureSubscription: ServiceConnectionDTA
+              scriptType: 'bash'
+              scriptLocation: 'inlineScript'
+              inlineScript: |
+                az deployment group what-if \
+                --resource-group ${{ parameters.rgName }} \
+                --template-file deploy/main.bicep \
+                --parameters ../${{ parameters.artifactName }}/main.${{ parameters.env }}.json

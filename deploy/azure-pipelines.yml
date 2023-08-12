@@ -1,0 +1,44 @@
+trigger:
+  batch: true
+  branches:
+    include:
+      - main
+
+pool: Self-hosted
+
+variables:
+  location: uksouth
+  artifactName: drop
+  rgName:
+    dev: rg-tmpl-dev-uks
+    prd: rg-tmpl-prd-uks
+
+stages:
+  # Lint IaC Code, Build and Publish parameters
+  # Building Params required due to not supporting bicepparam by ARM Deployement task
+  - template: templates/lintAndBuildParams.yml
+    parameters:
+      artifactName: $(artifactName)
+
+  # Validate & Deploy to DEV
+  - template: templates/deploy.yml
+    parameters:
+      env: dev
+      rgName: $(rgName[dev])
+      artifactName: $(artifactName)
+      location: $(location)
+
+  # Preview changes in PRD
+  - template: templates/preview.yml
+    parameters:
+      env: prd
+      rgName: $(rgName[prd])
+      artifactName: $(artifactName)
+
+  # Validate & Deploy to PRD
+  - template: templates/deploy.yml
+    parameters:
+      env: prd
+      rgName: $(rgName[prd])
+      artifactName: $(artifactName)
+      location: $(location)
