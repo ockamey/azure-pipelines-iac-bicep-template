@@ -9,9 +9,8 @@ pool: Self-hosted
 variables:
   location: uksouth
   artifactName: drop
-  rgName:
-    dev: rg-tmpl-dev-uks
-    prd: rg-tmpl-prd-uks
+  rgNameDev: rg-learn-dev-uks
+  rgNamePrd: rg-learn-prd-uks
 
 stages:
   # Lint IaC Code, Build and Publish parameters
@@ -24,7 +23,7 @@ stages:
   - template: templates/deploy.yml
     parameters:
       env: dev
-      rgName: $(rgName[dev])
+      rgName: $(rgNameDev)
       artifactName: $(artifactName)
       location: $(location)
 
@@ -32,13 +31,13 @@ stages:
   - template: templates/preview.yml
     parameters:
       env: prd
-      rgName: $(rgName[prd])
+      rgName: $(rgNamePrd)
       artifactName: $(artifactName)
 
   # Validate & Deploy to PRD
   - template: templates/deploy.yml
     parameters:
       env: prd
-      rgName: $(rgName[prd])
+      rgName: $(rgNamePrd)
       artifactName: $(artifactName)
       location: $(location)
